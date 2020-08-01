@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 Holly Erickson
-DSC550 Exercise 9.2
 Original Analysis Case Study
 """
 
@@ -12,8 +11,9 @@ import matplotlib.pyplot as plt
 #Step 1:  Load data into a dataframe
 addr1 = "8358_1.csv"
 data = pd.read_csv(addr1)
-#%%
 
+
+#%%
 # Step 2:  check the dimension of the table
 print("The dimension of the table is: ", data.shape)
 
@@ -206,8 +206,12 @@ drop_list = ['address', 'categories', 'city', 'country', 'keys', 'latitude',
        'postalCode', 'priceRangeCurrency', 'province']
 copy = data.copy()
 copy.drop(drop_list, axis = 1, inplace = True)
+
+#%%
+
 # dropping duplicte values 
 copy.drop_duplicates(inplace = True) 
+#copy.dropna(inplace=True)
 #%%
 # Step 12: Find the midpoint price range for each restaurant and transform into target
 # Add a column for mid-price of restaurant 
@@ -227,8 +231,8 @@ df['mid'] = mid
 df['name'] = name
 df['target'] = np.nan
 # Replace mid with category 
-df.loc[df['mid'] < 15, 'target'] = 1 # REDO FOR 40
-df.loc[df['mid'] >= 15, 'target'] = 0
+df.loc[df['mid'] > 40, 'target'] = 1 # REDO FOR 40 / < 15
+df.loc[df['mid'] <= 40, 'target'] = 0
 
 print("Target Value Counts: ", df.target.value_counts())
 Y = df['target']
@@ -256,24 +260,9 @@ X = tfidf_features(df['name'], flag="train")
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
-classifier = RandomForestClassifier(class_weight = "balanced", n_estimators=200, min_samples_split= 10, min_samples_leaf=4, n_jobs=-1) # Modified for Pass 11
 
-"""
-SVC(C=100, # penalty parameter
-	 			 kernel='rbf', # kernel type, rbf working fine here
-	 			 degree=3, # default value
-	 			 gamma=1, # kernel coefficient
-	 			 coef0=1, # change to 1 from default value of 0.0
-	 			 shrinking=True, # using shrinking heuristics
-	 			 tol=0.001, # stopping criterion tolerance 
-	      		 probability=False, # no need to enable probability estimates
-	      		 cache_size=200, # 200 MB cache size
-	      		 class_weight=None, # all classes are treated equally 
-	      		 verbose=False, # print the logs 
-	      		 max_iter=-1, # no limit, let it run
-          		 decision_function_shape=None, # will use one vs rest explicitly 
-          		 random_state=None)
-"""
+#%%
+classifier = RandomForestClassifier(class_weight = "balanced", n_estimators=200, min_samples_split= 10, min_samples_leaf=4, n_jobs=-1) # Modified for Pass 11
 model = OneVsRestClassifier(classifier, n_jobs=4)
 
 ## Model Tuning 
@@ -295,7 +284,7 @@ print("Best Params: ", grid_search.best_params_)
 from sklearn.model_selection import train_test_split
 from sklearn import metrics
 x_train, x_test, y_train, y_test = train_test_split(X, Y, test_size=0.1, random_state=0)
-
+#%%
 clf = RandomForestClassifier( class_weight = "balanced", n_estimators=200, min_samples_split= 10, min_samples_leaf=2, n_jobs=-1) # Modified for Pass 11
 clf.fit(x_train, y_train)
 predictions = clf.predict(x_test)
@@ -309,3 +298,31 @@ clf.fit(X, Y)
 feat = pd.DataFrame()
 feat['importance'] = clf.feature_importances_
 feat['feat'] = tfidf.get_feature_names()
+
+#%%
+# Step 16: Repeat steps 12 - 15 for low cost restaurants.
+
+#%%
+# Step 17: Select Best Model from Multiple Learning Algorithms
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC
+from sklearn.pipeline import Pipeline
+
+# create Pipeline
+pipe = Pipeline([("classifier", RandomForestClassifier())])
+# create dictionary with learning algorithms to test along with hyper parameters
+search_space=[{"classifier": [LogisticRegression()], 
+                              "classifier__penalty": ['l1', 'l2'],
+                              "classifier__C": np.logspace(0,4,10)},
+            {"classifier": [RandomForestClassifier()], 
+                              "classifier__n_estimators": [200, 300],
+                              "classifier__max_features": [1,2,3]},
+            {"classifier": [SVC()],
+                              "classifier__C": [0.001, 0.01, 0.1, 1, 10],
+                              "classifier__gamma": [0.001, 0.01, 0.1, 1]}
+            ]
+
+grid_search = GridSearchCV(pipe, search_space, cv=5, verbose=1) 
+grid_search.fit(X, Y) 
+print ("Best Score: ", grid_search.best_score_)
+print("Best Params: ", grid_search.best_params_)

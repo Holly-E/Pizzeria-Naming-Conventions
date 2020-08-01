@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Holly Erickson
-DSC 540 Final Project
+Visualization
 """
 
 

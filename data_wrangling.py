@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 Holly Erickson
-DSC 540 MidTerm
+Data Wrangling
 """
 
 
@@ -147,4 +147,4 @@ Output:
 Closest match for Little Pizza Paradise is Little Italy Pizza Deli with ratio of 64.
 """
 #%%
-df.to_csv('midterm_dataset.csv')
+df.to_csv('dataset.csv')
