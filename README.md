@@ -20,3 +20,5 @@ Model
 - Repeat to find words that contribute to classifying a restaurant as cheap (mid-point < $15) 
 - Select Best Model from Multiple Learning Algorithms 
 
+Report and results:
+https://github.com/Holly-E/Pizzeria-Naming-Conventions/blob/master/Analysis_expensive_vs_cheap.pdf
